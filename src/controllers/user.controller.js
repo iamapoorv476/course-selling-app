@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import { use } from "react";
 import { User } from "../models/user.model.js";
 
-const usersignup = asyncHandler(async(requestAnimationFrame,res)=>{
+const usersignup = asyncHandler(async(req,res)=>{
     const {fullName,username,email,password} = req.body
 
     if(
@@ -38,3 +38,21 @@ const usersignup = asyncHandler(async(requestAnimationFrame,res)=>{
         new ApiResponse(200, createdUser, "User registered Successfully")
     )
 })
+
+const userlogin = asyncHandler(async(req,res)=>{
+    const{username,email,password} = req.body
+    if(!username && !email){
+        throw new ApiError(400,"username or email is required ")
+    }
+    const user = await User.findOne({
+        $or:[{username},{email}]
+    })
+    if(!user){
+        throw new ApiError(404,"User does not exist")
+    }
+})
+
+export{
+    usersignup,
+    userlogin
+}
