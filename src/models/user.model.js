@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { hashPasswordPlugin } from "../utils/hashPasswordplugin";
 
 const userSchema = new Schema(
     {
@@ -33,6 +34,7 @@ const userSchema = new Schema(
         timestamps:true
     }
 )
+userSchema.plugin(hashPasswordPlugin);
 
 
 export const User = mongoose.model("User",userSchema)

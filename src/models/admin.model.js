@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { hashPasswordPlugin } from "../utils/hashPasswordplugin";
 
 const adminSchema = new Schema(
     {
@@ -27,4 +28,5 @@ const adminSchema = new Schema(
     }
 
 )
+adminSchema.plugin(hashPasswordPlugin);
 export const Admin= mongoose.model("Admin",adminSchema)

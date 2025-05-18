@@ -4,15 +4,15 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 import mongoose from "mongoose";
 import { generateAccessToken,generateRefreshToken } from "../utils/token.js";
-import { User } from "../models/user.model.js";
+import { Admin } from "../models/admin.model.js";
 
 const generateAccessandRefreshToken = async(userId)=>{
     try{
-        const user = await User.findById(userId)
-         const accessToken = generateAccessToken(user,"user");
-        const refreshToken = generateRefreshToken(user,"user");
-        user.refreshToken= refreshToken
-        await user.save({validateBeforeSave:false})
+        const user = await Admin.findById(userId)
+         const accessToken = generateAccessToken(admin,"admin");
+        const refreshToken = generateRefreshToken(admin,"admin");
+        admin.refreshToken= refreshToken
+        await admin.save({validateBeforeSave:false})
         return{accessToken,refreshToken};
 
 
@@ -21,28 +21,27 @@ const generateAccessandRefreshToken = async(userId)=>{
         throw new ApiError(500,"Something went wrong while generating refresh and access token")
     }
 }
-
-const usersignup = asyncHandler(async(req,res)=>{
-    const {fullName,username,email,password} = req.body
+const adminsignup = asyncHandler(async(req,res)=>{
+    const {fullName,email,password} = req.body
 
     if(
-        [fullName,username,email,password].some((field)=> field ?.trim()==="")
+        [fullName,email,password].some((field)=> field ?.trim()==="")
     ){
         throw new ApiError(400,"All feilds are required")
     }
-    const existedUser = await User.findOne({
-        $or:[{username},{email}]
+    const existedUser = await Admin.findOne({
+        $or:[{email}]
     })
     if(existedUser){
         throw new ApiError(409,"User with email or username already exist!")
     }
-    const user = await User.create({
+    const admin = await Admin.create({
         fullName,
-        username,
+        
         email,
         password
     })
-    const createdUser = await User.findById(user._id).select(
+    const createdUser = await Admin.findById(user._id).select(
         "-password -refreshToken"
     )
     if (!createdUser) {
@@ -54,25 +53,24 @@ const usersignup = asyncHandler(async(req,res)=>{
         new ApiResponse(200, createdUser, "User registered Successfully")
     )
 })
-
-const userlogin = asyncHandler(async(req,res)=>{
-    const{username,email,password} = req.body
-    if(!username && !email){
-        throw new ApiError(400,"username or email is required ")
+const adminlogin = asyncHandler(async(req,res)=>{
+    const{email,password} = req.body
+    if(!email){
+        throw new ApiError(400," email is required ")
     }
-    const user = await User.findOne({
+    const admin = await Admin.findOne({
         $or:[{username},{email}]
     })
-    if(!user){
+    if(!admin){
         throw new ApiError(404,"User does not exist")
     }
-    const isPasswordValid = await user.isPasswordCorrect(password)
+    const isPasswordValid = await admin.isPasswordCorrect(password)
      if(!isPasswordValid){
     throw new ApiError(401,"Invalid credentials")
    }
-   const {accessToken,refreshToken} = await generateAccessandRefreshToken(user._id)
+   const {accessToken,refreshToken} = await generateAccessandRefreshToken(admin._id)
 
-   const loggedInUser =  await User.findById(user._id).select("-password -refreshToken")
+   const loggedInUser =  await Admin.findById(user._id).select("-password -refreshToken")
    const options ={
     httpOnly:true,
     secure:true
@@ -85,14 +83,13 @@ const userlogin = asyncHandler(async(req,res)=>{
     new ApiResponse(
         200,
         {
-            user:loggedInUser,accessToken,refreshToken
+            admin:loggedInUser,accessToken,refreshToken
         },
        " User logged in Successfully! "
     )
    )
 })
 
-export{
-    usersignup,
-    userlogin
+export{adminsignup,
+    adminlogin
 }
