@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose,{Schema} from "mongoose";
 import { hashPasswordPlugin } from "../utils/hashPasswordplugin";
 
 const userSchema = new Schema(
